@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DFR Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+
+<body clas="position-relative">
+  <div class="container-fluid d-flex flex-column vh-100 m-0 p-0 text-bg-black bg-black">
+    <!-- Top row: Odometer, Current time, Drive state (Discharged, Precharging, Drive, Reverse, Neutral), Status of IMD, BMS, TSMS -->
+    <div class="row g-0 text-center">
+      <div id="faults" class="fs-5 col text-bg-success border-end border-black">No Faults</div>
+      <div id="bot" class="fs-5 col-1 text-bg-success border-start border-end border-black">BOT</div>
+      <div id="brb" class="fs-5 col-1 text-bg-success border-start border-end border-black">BRB</div>
+      <div id="imd" class="fs-5 col-1 text-bg-success border-start border-end border-black">IMD</div>
+      <div id="bms" class="fs-5 col-1 text-bg-success border-start border-end border-black">BMS</div>
+      <div id="tsms" class="fs-5 col-1 text-bg-success border-start border-end border-black">TSMS</div>
+      <div id="drivestate" class="fs-5 col-3 text-bg-success border-start border-black">Drive</div>
+    </div>
+
+    <!-- Main section -->
+    <div class="flex-fill d-flex flex-column">
+      <div class="row flex-fill g-0">
+        <div class="col-3 d-flex flex-column text-center text-white">
+          <div class="flex-fill d-flex flex-column justify-content-center">
+            <div id="acctemp" class="fw-bold display-5">0.0 °F</div>
+            <div class="fs-5">Accumulator Temperature</div>
+          </div>
+          <div class="flex-fill d-flex flex-column justify-content-center">
+            <div id="leftinvtemp" class="fw-bold display-5">0.0 °F</div>
+            <div class="fs-5">Left Inverter Temperature</div>
+          </div>
+          <div class="flex-fill d-flex flex-column justify-content-center">
+            <div id="rightinvtemp" class="fw-bold display-5">0.0 °F</div>
+            <div class="fs-5">Right Inverter Temperature</div>
+          </div>
+        </div>
+        <!-- <div class="col-1 d-flex flex-column justify-content-center">
+                  <div class="bg-dark flex-fill my-1 d-flex flex-column justify-content-center">
+                      <div class="flex-fill position-relative rounded-3">
+                          <div class="w-100 bg-danger position-absolute bottom-0 rounded-top-3" style="height: 38%;"></div>
+                      </div>
+                      <div class="bg-white py-1"></div>
+                      <div class="flex-fill position-relative rounded-3">
+                          <div class="w-100 bg-primary position-absolute top-0 rounded-bottom-3"></div>
+                      </div>
+
+                  </div>
+                  <div class="text-center text-white">Energy Flow</div>
+              </div> -->
+        <div class="col-1 d-flex flex-column justify-content-center">
+          <div class="bg-dark flex-fill my-1 position-relative rounded-3">
+            <div id="throttlebar" class="position-absolute bottom-0 w-100 bg-primary rounded-3" style="height: 0.0%;">
+            </div>
+            <div id="throttleval" class="position-absolute top-50 start-50 translate-middle text-white fw-bold fs-6">
+              0.0%
+            </div>
+          </div>
+          <div class="text-center text-white">Throttle</div>
+        </div>
+        <div class="col-4 d-flex flex-column justify-content-center">
+          <!-- <div class="flex-fill m-1"></div> -->
+          <div class="flex-fill"></div>
+          <div id="rpm" class="text-white display-4 text-center fw-bold">0 RPM</div>
+          <div id="speed" class="text-white display-4 text-center fw-bold">0.0 MPH</div>
+          <div class="flex-fill"></div>
+          <div id="lap" class="text-white display-4 text-center fw-bold">Lap 0</div>
+          <div id="laptime" class="text-white fs-5 text-center">Lap time: 00:00.00</div>
+          <div class="flex-fill"></div>
+        </div>
+        <div class="col-1 d-flex flex-column justify-content-center">
+          <div class="bg-dark flex-fill my-1 position-relative rounded-3">
+            <div id="batterybar" class="position-absolute bottom-0 w-100 bg-primary rounded-3" style="height: 0.0%;">
+            </div>
+            <div id="batteryval" class="position-absolute top-50 start-50 translate-middle text-white fw-bold fs-6">0.0%
+            </div>
+          </div>
+          <div class="text-center text-white">Battery</div>
+        </div>
+        <div class="col-3 d-flex flex-column text-center text-white">
+          <div class="flex-fill d-flex flex-column justify-content-center">
+            <div id="hvvoltage" class="fw-bold display-5">0.0 V</div>
+            <div class="fs-5">Accumulator Voltage</div>
+          </div>
+          <div class="flex-fill d-flex flex-column justify-content-center">
+            <div id="acccurrent" class="fw-bold display-5">0.0 A</div>
+            <div class="fs-5">Accumulator Current</div>
+          </div>
+          <div class="flex-fill d-flex flex-column justify-content-center">
+            <div id="range" class="fw-bold display-5">0.0 mi</div>
+            <div class="fs-5">Estimated Range Remaining</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom row: Same as top for now -->
+    <div class="row g-0 text-center">
+      <div id="tractioncontrol" class="fs-5 col-4 text-bg-warning border-end border-black">Traction Control Off</div>
+      <div id="mileage" class="fs-5 col-4 text-bg-dark border-start border-end border-black">0.0 Miles</div>
+      <div id="temperaturesok" class="fs-5 col-4 text-bg-success border-start border-black">Temperatures OK</div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+  <script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    // Interval at which faults element is updated
+    const FAULT_UPDATE_INTERVAL = 1500; // ms
+    // List of active faults
+    var faults = [];
+    var fault_index = 0;
+
+
+    var faults_elm = document.getElementById('faults');
+    var bot_elm = document.getElementById('bot');
+    var brb_elm = document.getElementById('brb');
+    var imd_elm = document.getElementById('imd');
+    var bms_elm = document.getElementById('bms');
+    var tsms_elm = document.getElementById('tsms');
+    var drivestate_elm = document.getElementById('drivestate');
+
+    var acctemp_elm = document.getElementById('acctemp');
+    var leftinvtemp_elm = document.getElementById('leftinvtemp');
+    var rightinvtemp_elm = document.getElementById('rightinvtemp');
+
+    var throttlebar_elm = document.getElementById('throttlebar');
+    var throttleval_elm = document.getElementById('throttleval');
+
+    var rpm_elm = document.getElementById('rpm');
+    var speed_elm = document.getElementById('speed');
+    var lap_elm = document.getElementById('lap');
+    var laptime_elm = document.getElementById('laptime');
+
+    var batterybar_elm = document.getElementById('batterybar');
+    var batteryval_elm = document.getElementById('batteryval');
+
+    var hvvoltage_elm = document.getElementById('hvvoltage');
+    var acccurrent_elm = document.getElementById('acccurrent');
+    var range_elm = document.getElementById('range');
+
+    var tractioncontrol_elm = document.getElementById('tractioncontrol');
+    var mileage_elm = document.getElementById('mileage');
+    var temperaturesok_elm = document.getElementById('temperaturesok');
+
+
+    socket.on('connect', function () {
+      console.log('Connected to server');
+      if (faults.includes('Websocket Disconnected')) {
+        faults = faults.filter(fault => fault !== 'Websocket Disconnected');
+      }
+    });
+
+    // Log any errors
+    socket.on('error', function (error) {
+      console.log(error);
+    });
+
+    // Log when the server disconnects
+    socket.on('disconnect', function () {
+      console.log('Disconnected from server');
+      if (!faults.includes('Websocket Disconnected')) {
+        faults.push('Websocket Disconnected');
+      }
+    });
+
+    socket.on('data', function (data) {
+      console.log(data);
+      if (!data.canconnected) {
+        if (!faults.includes('CAN Disconnected')) {
+          faults.push('CAN Disconnected');
+        }
+      } else {
+        faults = faults.filter(fault => fault !== 'CAN Disconnected');
+      }
+
+      if (data.bot) {
+        bot_elm.classList.remove('text-bg-danger');
+        bot_elm.classList.add('text-bg-success');
+      } else {
+        bot_elm.classList.remove('text-bg-success');
+        bot_elm.classList.add('text-bg-danger');
+      }
+
+      if (data.brb) {
+        brb_elm.classList.remove('text-bg-danger');
+        brb_elm.classList.add('text-bg-success');
+      } else {
+        brb_elm.classList.remove('text-bg-success');
+        brb_elm.classList.add('text-bg-danger');
+      }
+
+      if (data.imd) {
+        imd_elm.classList.remove('text-bg-danger');
+        imd_elm.classList.add('text-bg-success');
+      } else {
+        imd_elm.classList.remove('text-bg-success');
+        imd_elm.classList.add('text-bg-danger');
+      }
+
+      if (data.bms) {
+        bms_elm.classList.remove('text-bg-danger');
+        bms_elm.classList.add('text-bg-success');
+      } else {
+        bms_elm.classList.remove('text-bg-success');
+        bms_elm.classList.add('text-bg-danger');
+      }
+
+      if (data.tsms) {
+        tsms_elm.classList.remove('text-bg-danger');
+        tsms_elm.classList.add('text-bg-success');
+      } else {
+        tsms_elm.classList.remove('text-bg-success');
+        tsms_elm.classList.add('text-bg-danger');
+      }
+
+      // Drive states
+      // Drive/Reverse: Green
+      // Neutral/Precharging: Yellow
+      // Discharged: Red      
+      if (data.drive_state.toLowerCase() == 'drive' || data.drive_state.toLowerCase() == 'reverse') {
+        drivestate_elm.classList.remove('text-bg-warning');
+        drivestate_elm.classList.remove('text-bg-danger');
+        drivestate_elm.classList.add('text-bg-success');
+      } else if (data.drive_state.toLowerCase() == 'neutral' || data.drive_state.toLowerCase() == 'precharging') {
+        drivestate_elm.classList.remove('text-bg-success');
+        drivestate_elm.classList.remove('text-bg-danger');
+        drivestate_elm.classList.add('text-bg-warning');
+      } else {
+        drivestate_elm.classList.remove('text-bg-success');
+        drivestate_elm.classList.remove('text-bg-warning');
+        drivestate_elm.classList.add('text-bg-danger');
+      }
+      drivestate_elm.innerHTML = data.drive_state;
+
+      acctemp_elm.innerHTML = data.accumulator_temperature.toFixed(1) + ' °F';
+      leftinvtemp_elm.innerHTML = data.leftinvtemp.toFixed(1) + ' °F';
+      rightinvtemp_elm.innerHTML = data.rightinvtemp.toFixed(1) + ' °F';
+
+      throttlebar_elm.style.height = data.throttle_position + '%';
+      throttleval_elm.innerHTML = data.throttle_position.toFixed(1) + '%';
+
+      rpm_elm.innerHTML = data.rpm.toFixed(0) + ' RPM';
+      speed_elm.innerHTML = data.speed.toFixed(1) + ' MPH';
+
+      lap_elm.innerHTML = 'Lap ' + data.lap;
+      laptime_elm.innerHTML = 'Lap time: ' + data.lap_time;
+
+      batterybar_elm.style.height = data.battery_percentage + '%';
+      batteryval_elm.innerHTML = data.battery_percentage.toFixed(1) + '%';
+
+      hvvoltage_elm.innerHTML = data.accumulator_voltage.toFixed(1) + ' V';
+      acccurrent_elm.innerHTML = data.accumulator_current.toFixed(1) + ' A';
+      range_elm.innerHTML = data.estimated_range.toFixed(1) + ' mi';
+
+      if (data.tractioncontrol) {
+        tractioncontrol_elm.classList.remove('text-bg-warning');
+        tractioncontrol_elm.classList.add('text-bg-success');
+        tractioncontrol_elm.innerHTML = 'Traction Control On';
+      } else {
+        tractioncontrol_elm.classList.remove('text-bg-success');
+        tractioncontrol_elm.classList.add('text-bg-warning');
+        tractioncontrol_elm.innerHTML = 'Traction Control Off';
+      }
+
+      mileage_elm.innerHTML = data.mileage.toFixed(1) + ' Miles';
+
+      if (data.temperaturesok) {
+        temperaturesok_elm.classList.remove('text-bg-danger');
+        temperaturesok_elm.classList.add('text-bg-success');
+        temperaturesok_elm.innerHTML = 'Temperatures OK';
+      } else {
+        temperaturesok_elm.classList.remove('text-bg-success');
+        temperaturesok_elm.classList.add('text-bg-danger');
+        temperaturesok_elm.innerHTML = '🔥🔥🔥🔥🔥🔥🔥🔥';
+      }
+      // console.log(data);
+    });
+
+
+    // If no faults, display "No Faults" in green
+    // Otherwise make background red and cycle through faults
+    setInterval(function () {
+      if (faults.length == 0) {
+        faults_elm.innerHTML = 'No Faults';
+        faults_elm.classList.remove('text-bg-danger');
+        faults_elm.classList.add('text-bg-success');
+      } else {
+        faults_elm.classList.remove('text-bg-success');
+        faults_elm.classList.add('text-bg-danger');
+        faults_elm.innerHTML = faults[fault_index];
+        fault_index = (fault_index + 1) % faults.length;
+      }
+    }, FAULT_UPDATE_INTERVAL);
+
+
+    // Poll at 1 Hz
+    // setInterval(function() {
+    //   fetch('/data')
+    //     .then(response => response.json())
+    //     .then(data => {
+    //       console.log(data);
+    //     });
+    // }, 1000);
+  </script>
+</body>
+
+</html>

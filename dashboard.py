@@ -1,0 +1,160 @@
+import config
+from time import time
+
+if config.IN_CAR:
+    import RPi.GPIO as GPIO
+
+import multiprocessing
+
+import canbus
+import web
+
+BUTTON_UPDATE_INTERVAL = 200
+
+if __name__ == "__main__":
+    if config.IN_CAR:
+        # Set up GPIO
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(config.BMS_LED_GPIO, GPIO.OUT)
+        GPIO.setup(config.IMD_LED_GPIO, GPIO.OUT)
+        GPIO.setup(config.CAN_NRST_GPIO, GPIO.OUT)
+        GPIO.setup(config.CAN_STBY_GPIO, GPIO.OUT)
+        GPIO.setup(config.DRIVE_BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(config.DRIVE_LED_GPIO, GPIO.OUT)
+        GPIO.setup(config.NEUTRAL_BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(config.NEUTRAL_LED_GPIO, GPIO.OUT)
+        GPIO.setup(config.REVERSE_BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(config.REVERSE_LED_GPIO, GPIO.OUT)
+
+    drive_pressed = False
+    neutral_pressed = False
+    reverse_pressed = False
+
+    rx_queue = multiprocessing.Queue()
+    tx_queue = multiprocessing.Queue()
+
+    manager = multiprocessing.Manager()
+
+    # Create a shared dictionary to store the data
+    # Contains last known vehicle state, should never be used for vehicle control
+    state = manager.dict()
+
+    state["bot"] = False
+    state["brb"] = False
+    state["imd"] = False
+    state["bms"] = False
+    state["tsms"] = False
+    state["drive_state"] = "NEUTRAL"
+    state["acctemp"] = 0.0
+    state["leftinvtemp"] = 0.0
+    state["rightinvtemp"] = 0.0
+    state["throttle_position"] = 0.0
+    state["rpm"] = 0.0
+    state["speed"] = 0.0
+    state["lap"] = 0
+    state["laptime"] = 0.0
+    state["battery_percentage"] = 0.0
+    state["accumulator_voltage"] = 0.0
+    state["LV_voltage"] = 0.0
+    state["accumulator_current"] = 0.0
+    state["accumulator_temperature"] = 0.0
+    state["estimated_range"] = 0.0
+    state["tractioncontrol"] = False
+    state["mileage"] = 0.0
+    state["temperaturesok"] = False
+    state["canconnected"] = False
+
+    web_process = multiprocessing.Process(target=web.run, args=(state,), daemon=True)
+    can_process = multiprocessing.Process(
+        target=canbus.run,
+        args=(
+            rx_queue,
+            tx_queue,
+            state,
+        ),
+        daemon=True,
+    )
+
+    web_process.start()
+    if config.IN_CAR:
+        can_process.start()
+
+    last_button_send = 0
+    while True:
+        # Send button states every BUTTON_UPDATE_INTERVAL ms
+        if config.IN_CAR and (time() - last_button_send) * 1000 > BUTTON_UPDATE_INTERVAL:
+            # Check button states
+            drive_pressed = False
+            neutral_pressed = False
+            reverse_pressed = False
+            if GPIO.input(config.DRIVE_BUTTON_GPIO) == 0:
+                drive_pressed = True
+            if GPIO.input(config.NEUTRAL_BUTTON_GPIO) == 0:
+                neutral_pressed = True
+            if GPIO.input(config.REVERSE_BUTTON_GPIO) == 0:
+                reverse_pressed = True
+
+            # Build CAN message
+            msg = canbus.build_button_message(drive_pressed, neutral_pressed, reverse_pressed)
+
+            # Add status message to the TX queue
+            tx_queue.put(msg)
+
+            last_button_send = time()
+
+        if config.IN_CAR:
+            if state["imd"]:
+                GPIO.output(config.IMD_LED_GPIO, GPIO.HIGH)
+            else:
+                GPIO.output(config.IMD_LED_GPIO, GPIO.LOW)
+
+            if state["bms"]:
+                GPIO.output(config.BMS_LED_GPIO, GPIO.HIGH)
+            else:
+                GPIO.output(config.BMS_LED_GPIO, GPIO.LOW)
+
+            drive_state = state["drive_state"]
+            if drive_state == "NEUTRAL":
+                GPIO.output(config.DRIVE_LED_GPIO, GPIO.LOW)
+                GPIO.output(config.NEUTRAL_LED_GPIO, GPIO.HIGH)
+                GPIO.output(config.REVERSE_LED_GPIO, GPIO.LOW)
+            elif drive_state == "DRIVE":
+                GPIO.output(config.DRIVE_LED_GPIO, GPIO.HIGH)
+                GPIO.output(config.NEUTRAL_LED_GPIO, GPIO.LOW)
+                GPIO.output(config.REVERSE_LED_GPIO, GPIO.LOW)
+            elif drive_state == "REVERSE":
+                GPIO.output(config.DRIVE_LED_GPIO, GPIO.LOW)
+                GPIO.output(config.NEUTRAL_LED_GPIO, GPIO.LOW)
+                GPIO.output(config.REVERSE_LED_GPIO, GPIO.HIGH)
+
+
+        # Process RX queue messages
+        while not rx_queue.empty():
+            msg = rx_queue.get()
+            if msg is None:
+                continue
+
+            if msg.is_extended_id:
+                if msg.arbitration_id == 0x770:
+                    state["bms"] = msg.data[0]
+                    state["imd"] = msg.data[1]
+                    drive_state = msg.data[2]
+                    if drive_state == 0:
+                        state["drive_state"] = "NEUTRAL"
+                    elif drive_state == 1:
+                        state["drive_state"] = "DRIVE"
+                    elif drive_state == 2:
+                        state["drive_state"] = "REVERSE"
+            else:
+                if msg.arbitration_id == 0x100:
+                    state["speed"] = msg.data[0]
+                elif msg.arbitration_id == 0x101:
+                    state["accumulator_voltage"] = msg.data[0]
+                    state["LV_voltage"] = msg.data[1]
+                else:
+                    print(f"Unknown message received: {msg}")
+
+    # Wait for processes to finish
+    web_process.join()
+    if config.IN_CAR:
+        can_process.join()
