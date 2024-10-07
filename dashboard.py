@@ -112,13 +112,13 @@ if __name__ == "__main__":
                 reverse_press_time = time()
 
             now = time()
-            if (now - drive_press_time) > 0.5:
+            if (now - drive_press_time) > BUTTON_DEBOUNCE_TIME:
                 drive_button = drive_button_state
                 last_drive_button_state = drive_button_state
-            if (now - neutral_press_time) > 0.5:
+            if (now - neutral_press_time) > BUTTON_DEBOUNCE_TIME:
                 neutral_button = neutral_button_state
                 last_neutral_button_state = neutral_button_state
-            if (now - reverse_press_time) > 0.5:
+            if (now - reverse_press_time) > BUTTON_DEBOUNCE_TIME:
                 reverse_button = reverse_button_state
                 last_reverse_button_state = reverse_button_state
 
