@@ -14,7 +14,7 @@ log = logging.getLogger('werkzeug')
 def run(state_):
     global state
     state = state_
-    socketio.run(app, host='0.0.0.0', port=5000, use_reloader=False, debug=config.DEBUG)
+    socketio.run(app, host='0.0.0.0', port=5000, use_reloader=False, debug=config.DEBUG, allow_unsafe_werkzeug=True)
 
 def background_thread():
     global state
