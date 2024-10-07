@@ -9,7 +9,8 @@ import multiprocessing
 import canbus
 import web
 
-BUTTON_UPDATE_INTERVAL = 50  # ms
+BUTTON_DEBOUNCE_TIME = 50 # ms
+BUTTON_SEND_INTERVAL = 50  # ms
 
 if __name__ == "__main__":
     if config.IN_CAR:
@@ -26,9 +27,9 @@ if __name__ == "__main__":
         GPIO.setup(config.REVERSE_BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(config.REVERSE_LED_GPIO, GPIO.OUT)
 
-    drive_pressed = False
-    neutral_pressed = False
-    reverse_pressed = False
+    drive_button_state = False
+    neutral_button_state = False
+    reverse_button_state = False
 
     rx_queue = multiprocessing.Queue()
     tx_queue = multiprocessing.Queue()
@@ -80,27 +81,51 @@ if __name__ == "__main__":
         can_process.start()
 
     last_button_send = 0
+    last_drive_button_state = False
+    last_neutral_button_state = False
+    last_reverse_button_state = False
+    drive_press_time = 0
+    neutral_press_time = 0
+    reverse_press_time = 0
     while True:
         # Send button states every BUTTON_UPDATE_INTERVAL ms
-        if config.IN_CAR and (time() - last_button_send) * 1000 > BUTTON_UPDATE_INTERVAL:
+        if config.IN_CAR:
             # Check button states
-            drive_pressed = False
-            neutral_pressed = False
-            reverse_pressed = False
+            drive_button_state = False
+            neutral_button_state = False
+            reverse_button_state = False
+            drive_button = False
+            neutral_button = False
+            reverse_button = False
             if GPIO.input(config.DRIVE_BUTTON_GPIO) == 0:
-                drive_pressed = True
+                drive_button_state = True
             if GPIO.input(config.NEUTRAL_BUTTON_GPIO) == 0:
-                neutral_pressed = True
+                neutral_button_state = True
             if GPIO.input(config.REVERSE_BUTTON_GPIO) == 0:
-                reverse_pressed = True
+                reverse_button_state = True
 
-            if drive_pressed or neutral_pressed or reverse_pressed:
+            if drive_button_state != last_drive_button_state:
+                drive_press_time = time()
+            if neutral_button_state != last_neutral_button_state:
+                neutral_press_time = time()
+            if reverse_button_state != last_reverse_button_state:
+                reverse_press_time = time()
+
+            now = time()
+            if (now - drive_press_time) > 0.5:
+                drive_button = drive_button_state
+            if (now - neutral_press_time) > 0.5:
+                neutral_button = neutral_button_state
+            if (now - reverse_press_time) > 0.5:
+                reverse_button = reverse_button_state
+
+            if drive_button or neutral_button or reverse_button and (now - last_button_send) * 1000 > BUTTON_SEND_INTERVAL:
                 # Build CAN message
-                msg = canbus.build_button_message(drive_pressed, neutral_pressed, reverse_pressed)
+                msg = canbus.build_button_message(drive_button, neutral_button, reverse_button)
                 # Add status message to the TX queue
                 tx_queue.put(msg)
 
-            print(F"Drive: {drive_pressed}, Neutral: {neutral_pressed}, Reverse: {reverse_pressed}")
+            print(F"Drive: {drive_button}, Neutral: {neutral_button}, Reverse: {reverse_button}")
 
             last_button_send = time()
 
