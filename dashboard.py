@@ -9,7 +9,7 @@ import multiprocessing
 import canbus
 import web
 
-BUTTON_UPDATE_INTERVAL = 200
+BUTTON_UPDATE_INTERVAL = 50  # ms
 
 if __name__ == "__main__":
     if config.IN_CAR:
@@ -94,11 +94,13 @@ if __name__ == "__main__":
             if GPIO.input(config.REVERSE_BUTTON_GPIO) == 0:
                 reverse_pressed = True
 
-            # Build CAN message
-            msg = canbus.build_button_message(drive_pressed, neutral_pressed, reverse_pressed)
+            if drive_pressed or neutral_pressed or reverse_pressed:
+                # Build CAN message
+                msg = canbus.build_button_message(drive_pressed, neutral_pressed, reverse_pressed)
+                # Add status message to the TX queue
+                tx_queue.put(msg)
 
-            # Add status message to the TX queue
-            tx_queue.put(msg)
+            print(F"Drive: {drive_pressed}, Neutral: {neutral_pressed}, Reverse: {reverse_pressed}")
 
             last_button_send = time()
 
