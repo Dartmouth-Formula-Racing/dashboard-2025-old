@@ -147,12 +147,16 @@ if __name__ == "__main__":
                     state["bms"] = msg.data[0]
                     state["imd"] = msg.data[1]
                     drive_state = msg.data[2]
+                    state["bot"] = msg.data[3]
+                    state["brb"] = msg.data[4]
                     if drive_state == 0:
                         state["drive_state"] = "NEUTRAL"
                     elif drive_state == 1:
                         state["drive_state"] = "DRIVE"
                     elif drive_state == 2:
                         state["drive_state"] = "REVERSE"
+                elif msg.arbitration_id == config.CAN_BMS_BASE + 0x01:
+                    state["accumulator_voltage"] = (msg.data[5] << 24) | (msg.data[6] << 16) | (msg.data[3] << 8) | msg.data[4]
 
     # Wait for processes to finish
     web_process.join()
