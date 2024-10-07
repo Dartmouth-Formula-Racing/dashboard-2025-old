@@ -26,7 +26,14 @@ state = None
 bus = None
 
 def build_button_message(drive_pressed, neutral_pressed, reverse_pressed):
-    data = [drive_pressed, neutral_pressed, reverse_pressed]
+    state = 0
+    if reverse_pressed:
+        state = 2
+    if drive_pressed:
+        state = 1
+    if neutral_pressed:
+        state = 0
+    data = [state]
     dlc = len(data)
     return can.Message(arbitration_id=config.CAN_BASE_ID, data=data, dlc=dlc, is_extended_id=config.CAN_EXTENDED_ID)
 

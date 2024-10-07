@@ -101,15 +101,12 @@ if __name__ == "__main__":
             if GPIO.input(config.REVERSE_BUTTON_GPIO) == 0:
                 reverse_button = True
 
-            if drive_button or neutral_button or reverse_button and (time() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL:
+            if (drive_button or neutral_button or reverse_button) and ((time() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):
                 # Build CAN message
                 msg = canbus.build_button_message(drive_button, neutral_button, reverse_button)
                 # Add status message to the TX queue
                 tx_queue.put(msg)
-
-            print(F"Drive: {drive_button}, Neutral: {neutral_button}, Reverse: {reverse_button}")
-
-            last_button_send = time()
+                last_button_send = time()
 
         if config.IN_CAR:
             if state["imd"]:
