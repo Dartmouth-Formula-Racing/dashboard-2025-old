@@ -84,9 +84,9 @@ if __name__ == "__main__":
     last_drive_button_state = False
     last_neutral_button_state = False
     last_reverse_button_state = False
-    drive_press_time = 0
-    neutral_press_time = 0
-    reverse_press_time = 0
+    drive_update_time = 0
+    neutral_update_time = 0
+    reverse_update_time = 0
     while True:
         # Send button states every BUTTON_UPDATE_INTERVAL ms
         if config.IN_CAR:
@@ -105,22 +105,29 @@ if __name__ == "__main__":
                 reverse_button_state = True
 
             if drive_button_state != last_drive_button_state:
-                drive_press_time = time()
+                drive_update_time = time()
+                print("drive timer started")
             if neutral_button_state != last_neutral_button_state:
-                neutral_press_time = time()
+                neutral_update_time = time()
+                print("neutral timer started")
             if reverse_button_state != last_reverse_button_state:
-                reverse_press_time = time()
+                reverse_update_time = time()
+                print("reverse timer started")
+
+            last_drive_button_state = drive_button_state
+            last_neutral_button_state = neutral_button_state
+            last_reverse_button_state = reverse_button_state
 
             now = time()
-            if (now - drive_press_time) > BUTTON_DEBOUNCE_TIME:
+            if (now - drive_update_time) > BUTTON_DEBOUNCE_TIME:
                 drive_button = drive_button_state
-                last_drive_button_state = drive_button_state
-            if (now - neutral_press_time) > BUTTON_DEBOUNCE_TIME:
+                print("drive timer ended")
+            if (now - neutral_update_time) > BUTTON_DEBOUNCE_TIME:
                 neutral_button = neutral_button_state
-                last_neutral_button_state = neutral_button_state
-            if (now - reverse_press_time) > BUTTON_DEBOUNCE_TIME:
+                print("neutral timer ended")
+            if (now - reverse_update_time) > BUTTON_DEBOUNCE_TIME:
                 reverse_button = reverse_button_state
-                last_reverse_button_state = reverse_button_state
+                print("reverse timer ended")
 
             if drive_button or neutral_button or reverse_button and (now - last_button_send) * 1000 > BUTTON_SEND_INTERVAL:
                 # Build CAN message
