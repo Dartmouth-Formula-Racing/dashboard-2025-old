@@ -28,7 +28,7 @@ bus = None
 def build_button_message(drive_pressed, neutral_pressed, reverse_pressed):
     data = [drive_pressed, neutral_pressed, reverse_pressed]
     dlc = len(data)
-    return can.Message(arbitration_id=config.CAN_BASE_ID_STD, data=data, dlc=dlc, extended_id=config.CAN_USE_EXTENDED_ID)
+    return can.Message(arbitration_id=config.CAN_BASE_ID, data=data, dlc=dlc, is_extended_id=config.CAN_EXTENDED_ID)
 
 def run(_rx_queue, _tx_queue, _state):
     global rx_queue
@@ -41,13 +41,13 @@ def run(_rx_queue, _tx_queue, _state):
     state = _state
 
     # Set nRST high and STBY low
-    GPIO.output(config.CAN_NRST_GPIO, GPIO.HIGH)
-    GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
+    # GPIO.output(config.CAN_NRST_GPIO, GPIO.HIGH)
+    # GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
 
     # Main loop
     while True:
         # Initialize socketcan interface
-        while bus is not None:
+        while bus is None:
             try:
                 bus = can.interface.Bus(bustype='socketcan', channel='can0')
                 state['canconnected'] = True
@@ -58,7 +58,7 @@ def run(_rx_queue, _tx_queue, _state):
                 time.sleep(0.5)
 
         # Check if bus is in error state
-        if bus.state == can.BusState.ERROR_ACTIVE:
+        if bus.state == can.BusState.ERROR:
             print("CAN bus is in error state")
             bus = None
             state['canconnected'] = False

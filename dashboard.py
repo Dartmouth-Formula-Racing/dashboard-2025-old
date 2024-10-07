@@ -104,14 +104,14 @@ if __name__ == "__main__":
 
         if config.IN_CAR:
             if state["imd"]:
-                GPIO.output(config.IMD_LED_GPIO, GPIO.HIGH)
-            else:
                 GPIO.output(config.IMD_LED_GPIO, GPIO.LOW)
+            else:
+                GPIO.output(config.IMD_LED_GPIO, GPIO.HIGH)
 
             if state["bms"]:
-                GPIO.output(config.BMS_LED_GPIO, GPIO.HIGH)
-            else:
                 GPIO.output(config.BMS_LED_GPIO, GPIO.LOW)
+            else:
+                GPIO.output(config.BMS_LED_GPIO, GPIO.HIGH)
 
             drive_state = state["drive_state"]
             if drive_state == "NEUTRAL":
@@ -135,7 +135,9 @@ if __name__ == "__main__":
                 continue
 
             if msg.is_extended_id:
-                if msg.arbitration_id == 0x770:
+                pass
+            else:
+                if msg.arbitration_id == config.CAN_BASE_ID:
                     state["bms"] = msg.data[0]
                     state["imd"] = msg.data[1]
                     drive_state = msg.data[2]
@@ -145,14 +147,6 @@ if __name__ == "__main__":
                         state["drive_state"] = "DRIVE"
                     elif drive_state == 2:
                         state["drive_state"] = "REVERSE"
-            else:
-                if msg.arbitration_id == 0x100:
-                    state["speed"] = msg.data[0]
-                elif msg.arbitration_id == 0x101:
-                    state["accumulator_voltage"] = msg.data[0]
-                    state["LV_voltage"] = msg.data[1]
-                else:
-                    print(f"Unknown message received: {msg}")
 
     # Wait for processes to finish
     web_process.join()
