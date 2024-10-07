@@ -91,45 +91,17 @@ if __name__ == "__main__":
         # Send button states every BUTTON_UPDATE_INTERVAL ms
         if config.IN_CAR:
             # Check button states
-            drive_button_state = False
-            neutral_button_state = False
-            reverse_button_state = False
             drive_button = False
             neutral_button = False
             reverse_button = False
             if GPIO.input(config.DRIVE_BUTTON_GPIO) == 0:
-                drive_button_state = True
+                drive_button = True
             if GPIO.input(config.NEUTRAL_BUTTON_GPIO) == 0:
-                neutral_button_state = True
+                neutral_button = True
             if GPIO.input(config.REVERSE_BUTTON_GPIO) == 0:
-                reverse_button_state = True
+                reverse_button = True
 
-            if drive_button_state != last_drive_button_state:
-                drive_update_time = time()
-                print("drive timer started")
-            if neutral_button_state != last_neutral_button_state:
-                neutral_update_time = time()
-                print("neutral timer started")
-            if reverse_button_state != last_reverse_button_state:
-                reverse_update_time = time()
-                print("reverse timer started")
-
-            last_drive_button_state = drive_button_state
-            last_neutral_button_state = neutral_button_state
-            last_reverse_button_state = reverse_button_state
-
-            now = time()
-            if (now - drive_update_time) > BUTTON_DEBOUNCE_TIME:
-                drive_button = drive_button_state
-                print("drive timer ended")
-            if (now - neutral_update_time) > BUTTON_DEBOUNCE_TIME:
-                neutral_button = neutral_button_state
-                print("neutral timer ended")
-            if (now - reverse_update_time) > BUTTON_DEBOUNCE_TIME:
-                reverse_button = reverse_button_state
-                print("reverse timer ended")
-
-            if drive_button or neutral_button or reverse_button and (now - last_button_send) * 1000 > BUTTON_SEND_INTERVAL:
+            if drive_button or neutral_button or reverse_button and (time() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL:
                 # Build CAN message
                 msg = canbus.build_button_message(drive_button, neutral_button, reverse_button)
                 # Add status message to the TX queue
