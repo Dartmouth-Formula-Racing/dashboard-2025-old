@@ -1,0 +1,12 @@
+[Unit]
+Description=DFR Dashboard
+After=network.target
+
+[Service]
+Type=idle
+Restart=on-failure
+User=root
+ExecStart=/bin/bash -c 'cd /home/dashboard_2025/ && python dashboard.py'
+
+[Install]
+WantedBy=multi-user.target
