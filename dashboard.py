@@ -1,5 +1,6 @@
 import config
-from time import time
+from time import time, sleep
+import os
 
 if config.IN_CAR:
     import RPi.GPIO as GPIO
@@ -44,8 +45,9 @@ if __name__ == "__main__":
     state["brb"] = False
     state["imd"] = False
     state["bms"] = False
-    state["tsms"] = False
+    state["dcdc"] = False
     state["drive_state"] = "NEUTRAL"
+    state["vehicle_state"] = "Loading..."
     state["acctemp"] = 0.0
     state["leftinvtemp"] = 0.0
     state["rightinvtemp"] = 0.0
@@ -87,6 +89,10 @@ if __name__ == "__main__":
     drive_update_time = 0
     neutral_update_time = 0
     reverse_update_time = 0
+
+    sleep(1) # Wait a second for web process to start
+    os.system("chromium-browser localhost:5000 --start-maximized --start-fullscreen")
+
     while True:
         # Send button states every BUTTON_UPDATE_INTERVAL ms
         if config.IN_CAR:
@@ -143,20 +149,79 @@ if __name__ == "__main__":
             if msg.is_extended_id:
                 pass
             else:
-                if msg.arbitration_id == config.CAN_BASE_ID:
+                if msg.arbitration_id == config.CAN_BASE_ID + 1: # Vehicle state
                     state["bms"] = msg.data[0]
                     state["imd"] = msg.data[1]
                     drive_state = msg.data[2]
-                    state["bot"] = msg.data[3]
-                    state["brb"] = msg.data[4]
+                    vehicle_state = msg.data[3]
+                    state["bot"] = msg.data[4]
+                    state["brb"] = msg.data[5]
+                    state["dcdc"] = msg.data[6]
+                    
                     if drive_state == 0:
                         state["drive_state"] = "NEUTRAL"
                     elif drive_state == 1:
                         state["drive_state"] = "DRIVE"
                     elif drive_state == 2:
                         state["drive_state"] = "REVERSE"
-                elif msg.arbitration_id == config.CAN_BMS_BASE + 0x01:
-                    state["accumulator_voltage"] = (msg.data[5] << 24) | (msg.data[6] << 16) | (msg.data[3] << 8) | msg.data[4]
+                    
+                    if vehicle_state == 0:
+                        state["vehicle_state"] = "Initial"
+                    elif drive_state == 1:
+                        state["drive_state"] = "Voltage Check"
+                    elif drive_state == 2:
+                        state["drive_state"] = "Wait for Precharge"
+                    elif drive_state == 3:
+                        state["drive_state"] = "Precharge Stage 1"
+                    elif drive_state == 4:
+                        state["drive_state"] = "Precharge Stage 2"
+                    elif drive_state == 5:
+                        state["drive_state"] = "Precharge Stage 3"
+                    elif drive_state == 6:
+                        state["drive_state"] = "Not Ready to Drive"
+                    elif drive_state == 7:
+                        state["drive_state"] = "Buzzer"
+                    elif drive_state == 8:
+                        state["drive_state"] = "Ready to Drive"
+                elif msg.arbitration_id == config.CAN_BASE_ID + 2: # Driving data
+                    state["throttle_position"] = ((msg.data[0] << 8) | msg.data[1]) / 100
+                    rpm = (msg.data[2] << 8) | msg.data[3]
+                    state["rpm"] = rpm
+                    speed = (rpm *60 * config.WHEEL_DIAMETER * 3.1415926535)/(12 * 5280 * config.TRANSMISSION_RATIO)
+                    state["speed"] = speed
+                elif msg.arbitration_id == config.CAN_BMS_BASE + 1: # BMS pack voltage
+                    state["accumulator_voltage"] = ((msg.data[5] << 24) | (msg.data[6] << 16) | (msg.data[3] << 8) | msg.data[4]) / 100
+                elif msg.arbitration_id == config.CAN_BMS_BASE + 5: # BMS state of charge
+                    state["battery_percentage"] = ((msg.data[5] << 8) | msg.data[6]) / 100
+                    current_bytes = (msg.data[0] << 8) | msg.data[1]
+                    current_value = current_bytes - 32768 if current_bytes > 32767 else current_bytes # Convert to signed int
+                    state["accumulator_current"] = current_value / 10
+                elif msg.arbitration_id == config.CAN_BMS_BASE + 8: # BMS cell temperatures
+                    # state["acctemp"] = (msg.data[1] - 100) * (9/5) + 32 # Convert to F
+                    state["acctemp"] = msg.data[1] - 100 # in C
+                elif msg.arbitration_id == config.CAN_INVERTER1_BASE + 0: # Inverter 1 temperatures 1
+                    module_A_temp = (msg.data[1] << 8) | msg.data[0]
+                    module_A_temp = module_A_temp - 32768 if module_A_temp > 32767 else module_A_temp # Convert to signed int
+                    module_A_temp = module_A_temp / 10
+                    module_B_temp = (msg.data[3] << 8) | msg.data[2]
+                    module_B_temp = module_B_temp - 32768 if module_B_temp > 32767 else module_B_temp
+                    module_B_temp = module_B_temp / 10
+                    module_C_temp = (msg.data[5] << 8) | msg.data[4]
+                    module_C_temp = module_C_temp - 32768 if module_C_temp > 32767 else module_C_temp
+                    module_C_temp = module_C_temp / 10
+                    state["leftinvtemp"] = max(module_A_temp, module_B_temp, module_C_temp)
+                elif msg.arbitration_id == config.CAN_INVERTER2_BASE + 0: # Inverter 2 temperatures 1
+                    module_A_temp = (msg.data[1] << 8) | msg.data[0]
+                    module_A_temp = module_A_temp - 32768 if module_A_temp > 32767 else module_A_temp
+                    module_A_temp = module_A_temp / 10
+                    module_B_temp = (msg.data[3] << 8) | msg.data[2]
+                    module_B_temp = module_B_temp - 32768 if module_B_temp > 32767 else module_B_temp
+                    module_B_temp = module_B_temp / 10
+                    module_C_temp = (msg.data[5] << 8) | msg.data[4]
+                    module_C_temp = module_C_temp - 32768 if module_C_temp > 32767 else module_C_temp
+                    module_C_temp = module_C_temp / 10
+                    state["rightinvtemp"] = max(module_A_temp, module_B_temp, module_C_temp)
+
 
     # Wait for processes to finish
     web_process.join()

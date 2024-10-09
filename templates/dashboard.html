@@ -10,14 +10,14 @@
 
 <body clas="position-relative">
   <div class="container-fluid d-flex flex-column vh-100 m-0 p-0 text-bg-black bg-black">
-    <!-- Top row: Odometer, Current time, Drive state (Discharged, Precharging, Drive, Reverse, Neutral), Status of IMD, BMS, TSMS -->
+    <!-- Top row: Odometer, Current time, Drive state (Discharged, Precharging, Drive, Reverse, Neutral), Status of IMD, BMS, DC-DC -->
     <div class="row g-0 text-center">
       <div id="faults" class="fs-5 col text-bg-success border-end border-black">No Faults</div>
       <div id="bot" class="fs-5 col-1 text-bg-success border-start border-end border-black">BOT</div>
       <div id="brb" class="fs-5 col-1 text-bg-success border-start border-end border-black">BRB</div>
       <div id="imd" class="fs-5 col-1 text-bg-success border-start border-end border-black">IMD</div>
       <div id="bms" class="fs-5 col-1 text-bg-success border-start border-end border-black">BMS</div>
-      <div id="tsms" class="fs-5 col-1 text-bg-success border-start border-end border-black">TSMS</div>
+      <div id="dcdc" class="fs-5 col-1 text-bg-success border-start border-end border-black">DC-DC</div>
       <div id="drivestate" class="fs-5 col-3 text-bg-success border-start border-black">Drive</div>
     </div>
 
@@ -26,15 +26,15 @@
       <div class="row flex-fill g-0">
         <div class="col-3 d-flex flex-column text-center text-white">
           <div class="flex-fill d-flex flex-column justify-content-center">
-            <div id="acctemp" class="fw-bold display-5">0.0 °F</div>
+            <div id="acctemp" class="fw-bold display-5">0.0 °C</div>
             <div class="fs-5">Accumulator Temperature</div>
           </div>
           <div class="flex-fill d-flex flex-column justify-content-center">
-            <div id="leftinvtemp" class="fw-bold display-5">0.0 °F</div>
+            <div id="leftinvtemp" class="fw-bold display-5">0.0 °C</div>
             <div class="fs-5">Left Inverter Temperature</div>
           </div>
           <div class="flex-fill d-flex flex-column justify-content-center">
-            <div id="rightinvtemp" class="fw-bold display-5">0.0 °F</div>
+            <div id="rightinvtemp" class="fw-bold display-5">0.0 °C</div>
             <div class="fs-5">Right Inverter Temperature</div>
           </div>
         </div>
@@ -122,7 +122,7 @@
     var brb_elm = document.getElementById('brb');
     var imd_elm = document.getElementById('imd');
     var bms_elm = document.getElementById('bms');
-    var tsms_elm = document.getElementById('tsms');
+    var dcdc_elm = document.getElementById('dcdc');
     var drivestate_elm = document.getElementById('drivestate');
 
     var acctemp_elm = document.getElementById('acctemp');
@@ -211,12 +211,12 @@
         bms_elm.classList.add('text-bg-danger');
       }
 
-      if (data.tsms) {
-        tsms_elm.classList.remove('text-bg-danger');
-        tsms_elm.classList.add('text-bg-success');
+      if (data.dcdc) {
+        dcdc_elm.classList.remove('text-bg-danger');
+        dcdc_elm.classList.add('text-bg-success');
       } else {
-        tsms_elm.classList.remove('text-bg-success');
-        tsms_elm.classList.add('text-bg-danger');
+        dcdc_elm.classList.remove('text-bg-success');
+        dcdc_elm.classList.add('text-bg-danger');
       }
 
       // Drive states
@@ -238,9 +238,9 @@
       }
       drivestate_elm.innerHTML = data.drive_state;
 
-      acctemp_elm.innerHTML = data.accumulator_temperature.toFixed(1) + ' °F';
-      leftinvtemp_elm.innerHTML = data.leftinvtemp.toFixed(1) + ' °F';
-      rightinvtemp_elm.innerHTML = data.rightinvtemp.toFixed(1) + ' °F';
+      acctemp_elm.innerHTML = data.accumulator_temperature.toFixed(1) + ' °C';
+      leftinvtemp_elm.innerHTML = data.leftinvtemp.toFixed(1) + ' °C';
+      rightinvtemp_elm.innerHTML = data.rightinvtemp.toFixed(1) + ' °C';
 
       throttlebar_elm.style.height = data.throttle_position + '%';
       throttleval_elm.innerHTML = data.throttle_position.toFixed(1) + '%';

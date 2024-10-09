@@ -1,6 +1,9 @@
 IN_CAR = True # Disables GPIO and CAN for testing outside of vehicle
 DEBUG = True
 
+WHEEL_DIAMETER = 20.5 # inches
+TRANSMISSION_RATIO = 4.4
+
 DASH_UPDATE_FREQUENCY = 60 # Hz
 BUTTON_TRANSMIT_INTERVAL = 50 # ms
 CAN_RECV_TIMEOUT = 0.005 # s
