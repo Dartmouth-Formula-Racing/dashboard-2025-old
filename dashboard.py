@@ -28,6 +28,12 @@ if __name__ == "__main__":
         GPIO.setup(config.REVERSE_BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(config.REVERSE_LED_GPIO, GPIO.OUT)
 
+        GPIO.output(config.DRIVE_LED_GPIO, GPIO.HIGH)
+        GPIO.output(config.NEUTRAL_LED_GPIO, GPIO.HIGH)
+        GPIO.output(config.REVERSE_LED_GPIO, GPIO.HIGH)
+        GPIO.output(config.BMS_LED_GPIO, GPIO.HIGH)
+        GPIO.output(config.IMD_LED_GPIO, GPIO.HIGH)
+
     drive_button_state = False
     neutral_button_state = False
     reverse_button_state = False
@@ -147,7 +153,28 @@ if __name__ == "__main__":
                 continue
 
             if msg.is_extended_id:
-                pass
+                if msg.arbitration_id == config.CAN_INVERTER1_BASE + 0: # Inverter 1 temperatures 1
+                    module_A_temp = (msg.data[1] << 8) | msg.data[0]
+                    module_A_temp = module_A_temp - 32768 if module_A_temp > 32767 else module_A_temp # Convert to signed int
+                    module_A_temp = module_A_temp / 10
+                    module_B_temp = (msg.data[3] << 8) | msg.data[2]
+                    module_B_temp = module_B_temp - 32768 if module_B_temp > 32767 else module_B_temp
+                    module_B_temp = module_B_temp / 10
+                    module_C_temp = (msg.data[5] << 8) | msg.data[4]
+                    module_C_temp = module_C_temp - 32768 if module_C_temp > 32767 else module_C_temp
+                    module_C_temp = module_C_temp / 10
+                    state["leftinvtemp"] = max(module_A_temp, module_B_temp, module_C_temp)
+                elif msg.arbitration_id == config.CAN_INVERTER2_BASE + 0: # Inverter 2 temperatures 1
+                    module_A_temp = (msg.data[1] << 8) | msg.data[0]
+                    module_A_temp = module_A_temp - 32768 if module_A_temp > 32767 else module_A_temp
+                    module_A_temp = module_A_temp / 10
+                    module_B_temp = (msg.data[3] << 8) | msg.data[2]
+                    module_B_temp = module_B_temp - 32768 if module_B_temp > 32767 else module_B_temp
+                    module_B_temp = module_B_temp / 10
+                    module_C_temp = (msg.data[5] << 8) | msg.data[4]
+                    module_C_temp = module_C_temp - 32768 if module_C_temp > 32767 else module_C_temp
+                    module_C_temp = module_C_temp / 10
+                    state["rightinvtemp"] = max(module_A_temp, module_B_temp, module_C_temp)
             else:
                 if msg.arbitration_id == config.CAN_BASE_ID + 1: # Vehicle state
                     state["bms"] = msg.data[0]
@@ -199,28 +226,7 @@ if __name__ == "__main__":
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 8: # BMS cell temperatures
                     # state["acctemp"] = (msg.data[1] - 100) * (9/5) + 32 # Convert to F
                     state["acctemp"] = msg.data[1] - 100 # in C
-                elif msg.arbitration_id == config.CAN_INVERTER1_BASE + 0: # Inverter 1 temperatures 1
-                    module_A_temp = (msg.data[1] << 8) | msg.data[0]
-                    module_A_temp = module_A_temp - 32768 if module_A_temp > 32767 else module_A_temp # Convert to signed int
-                    module_A_temp = module_A_temp / 10
-                    module_B_temp = (msg.data[3] << 8) | msg.data[2]
-                    module_B_temp = module_B_temp - 32768 if module_B_temp > 32767 else module_B_temp
-                    module_B_temp = module_B_temp / 10
-                    module_C_temp = (msg.data[5] << 8) | msg.data[4]
-                    module_C_temp = module_C_temp - 32768 if module_C_temp > 32767 else module_C_temp
-                    module_C_temp = module_C_temp / 10
-                    state["leftinvtemp"] = max(module_A_temp, module_B_temp, module_C_temp)
-                elif msg.arbitration_id == config.CAN_INVERTER2_BASE + 0: # Inverter 2 temperatures 1
-                    module_A_temp = (msg.data[1] << 8) | msg.data[0]
-                    module_A_temp = module_A_temp - 32768 if module_A_temp > 32767 else module_A_temp
-                    module_A_temp = module_A_temp / 10
-                    module_B_temp = (msg.data[3] << 8) | msg.data[2]
-                    module_B_temp = module_B_temp - 32768 if module_B_temp > 32767 else module_B_temp
-                    module_B_temp = module_B_temp / 10
-                    module_C_temp = (msg.data[5] << 8) | msg.data[4]
-                    module_C_temp = module_C_temp - 32768 if module_C_temp > 32767 else module_C_temp
-                    module_C_temp = module_C_temp / 10
-                    state["rightinvtemp"] = max(module_A_temp, module_B_temp, module_C_temp)
+                
 
 
     # Wait for processes to finish

@@ -1,0 +1,12 @@
+[Unit]
+Description=DFR Dashboard Browser Service
+After=graphical-session.target
+
+[Service]
+Type=idle
+Restart=on-failure
+User=pi
+ExecStart=chromium-browser localhost:5000 --start-maximized --start-fullscreen
+
+[Install]
+WantedBy=default.target

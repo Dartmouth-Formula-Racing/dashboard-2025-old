@@ -1,5 +1,5 @@
 [Unit]
-Description=DFR Dashboard
+Description=DFR Dashboard Backend Service
 After=network.target
 
 [Service]
