@@ -101,7 +101,7 @@
     <div class="row g-0 text-center">
       <div id="tractioncontrol" class="fs-5 col-4 text-bg-warning border-end border-black">Traction Control Off</div>
       <div id="mileage" class="fs-5 col-4 text-bg-dark border-start border-end border-black">0.0 Miles</div>
-      <div id="temperaturesok" class="fs-5 col-4 text-bg-success border-start border-black">Temperatures OK</div>
+      <div id="vehiclestate" class="fs-5 col-4 text-bg-success border-start border-black">Loading...</div>
     </div>
   </div>
 
@@ -146,7 +146,7 @@
 
     var tractioncontrol_elm = document.getElementById('tractioncontrol');
     var mileage_elm = document.getElementById('mileage');
-    var temperaturesok_elm = document.getElementById('temperaturesok');
+    var vehiclestate_elm = document.getElementById('vehiclestate');
 
 
     socket.on('connect', function () {
@@ -270,15 +270,16 @@
 
       mileage_elm.innerHTML = data.mileage.toFixed(1) + ' Miles';
 
-      if (data.temperaturesok) {
-        temperaturesok_elm.classList.remove('text-bg-danger');
-        temperaturesok_elm.classList.add('text-bg-success');
-        temperaturesok_elm.innerHTML = 'Temperatures OK';
-      } else {
-        temperaturesok_elm.classList.remove('text-bg-success');
-        temperaturesok_elm.classList.add('text-bg-danger');
-        temperaturesok_elm.innerHTML = '🔥🔥🔥🔥🔥🔥🔥🔥';
-      }
+      // if (data.temperaturesok) {
+      //   vehiclestate_elm.classList.remove('text-bg-danger');
+      //   vehiclestate_elm.classList.add('text-bg-success');
+      //   vehiclestate_elm.innerHTML = 'Temperatures OK';
+      // } else {
+      //   vehiclestate_elm.classList.remove('text-bg-success');
+      //   vehiclestate_elm.classList.add('text-bg-danger');
+      //   vehiclestate_elm.innerHTML = '🔥🔥🔥🔥🔥🔥🔥🔥';
+      // }
+      vehiclestate_elm.innerHTML = data.vehicle_state;
       // console.log(data);
     });
 
