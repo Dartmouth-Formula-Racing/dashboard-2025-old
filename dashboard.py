@@ -195,21 +195,21 @@ if __name__ == "__main__":
                     if vehicle_state == 0:
                         state["vehicle_state"] = "Initial"
                     elif drive_state == 1:
-                        state["drive_state"] = "Voltage Check"
+                        state["vehicle_state"] = "Voltage Check"
                     elif drive_state == 2:
-                        state["drive_state"] = "Wait for Precharge"
+                        state["vehicle_state"] = "Wait for Precharge"
                     elif drive_state == 3:
-                        state["drive_state"] = "Precharge Stage 1"
+                        state["vehicle_state"] = "Precharge Stage 1"
                     elif drive_state == 4:
-                        state["drive_state"] = "Precharge Stage 2"
+                        state["vehicle_state"] = "Precharge Stage 2"
                     elif drive_state == 5:
-                        state["drive_state"] = "Precharge Stage 3"
+                        state["vehicle_state"] = "Precharge Stage 3"
                     elif drive_state == 6:
-                        state["drive_state"] = "Not Ready to Drive"
+                        state["vehicle_state"] = "Not Ready to Drive"
                     elif drive_state == 7:
-                        state["drive_state"] = "Buzzer"
+                        state["vehicle_state"] = "Buzzer"
                     elif drive_state == 8:
-                        state["drive_state"] = "Ready to Drive"
+                        state["vehicle_state"] = "Ready to Drive"
                 elif msg.arbitration_id == config.CAN_BASE_ID + 2: # Driving data
                     state["throttle_position"] = ((msg.data[0] << 8) | msg.data[1])
                     rpm = (msg.data[2] << 8) | msg.data[3]
