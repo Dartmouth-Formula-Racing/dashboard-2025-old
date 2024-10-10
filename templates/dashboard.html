@@ -101,7 +101,7 @@
     <div class="row g-0 text-center">
       <div id="tractioncontrol" class="fs-5 col-4 text-bg-warning border-end border-black">Traction Control Off</div>
       <div id="mileage" class="fs-5 col-4 text-bg-dark border-start border-end border-black">0.0 Miles</div>
-      <div id="vehiclestate" class="fs-5 col-4 text-bg-success border-start border-black">Loading...</div>
+      <div id="vehiclestate" class="fs-5 col-4 border-start border-black">Loading...</div>
     </div>
   </div>
 
@@ -270,15 +270,6 @@
 
       mileage_elm.innerHTML = data.mileage.toFixed(1) + ' Miles';
 
-      // if (data.temperaturesok) {
-      //   vehiclestate_elm.classList.remove('text-bg-danger');
-      //   vehiclestate_elm.classList.add('text-bg-success');
-      //   vehiclestate_elm.innerHTML = 'Temperatures OK';
-      // } else {
-      //   vehiclestate_elm.classList.remove('text-bg-success');
-      //   vehiclestate_elm.classList.add('text-bg-danger');
-      //   vehiclestate_elm.innerHTML = '🔥🔥🔥🔥🔥🔥🔥🔥';
-      // }
       vehiclestate_elm.innerHTML = data.vehicle_state;
       // console.log(data);
     });
