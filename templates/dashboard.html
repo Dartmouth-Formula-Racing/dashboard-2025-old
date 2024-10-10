@@ -174,7 +174,6 @@
     });
 
     socket.on('data', function (data) {
-      console.log(data);
       if (!data.canconnected) {
         if (!faults.includes('CAN Disconnected')) {
           faults.push('CAN Disconnected');
@@ -276,7 +275,32 @@
       mileage_elm.innerHTML = data.mileage.toFixed(1) + ' Miles';
 
       vehiclestate_elm.innerHTML = data.vehicle_state;
-      // console.log(data);
+      // Check if vehicle state contains precharge
+      if (data.vehicle_state.toLowerCase().includes('precharge')) {
+        // Yellow background
+        vehiclestate_elm.classList.remove('text-bg-danger');
+        vehiclestate_elm.classList.remove('text-bg-success');
+        vehiclestate_elm.classList.remove('text-bg-warning');
+        vehiclestate_elm.classList.add('text-bg-warning');
+      } else if (data.vehicle_state.toLowerCase() == 'ready to drive' || data.vehicle_state.toLowerCase() == 'buzzer' || data.vehicle_state.toLowerCase() == 'not ready to drive') {
+        // Green background
+        vehiclestate_elm.classList.remove('text-bg-danger');
+        vehiclestate_elm.classList.remove('text-bg-success');
+        vehiclestate_elm.classList.remove('text-bg-warning');
+        vehiclestate_elm.classList.add('text-bg-success');
+      } else if (data.vehicle_state.toLowerCase() == 'charging') {
+        // Blue background
+        vehiclestate_elm.classList.remove('text-bg-danger');
+        vehiclestate_elm.classList.remove('text-bg-success');
+        vehiclestate_elm.classList.remove('text-bg-warning');
+        vehiclestate_elm.classList.add('text-bg-primary');
+      } else {
+        // Red background
+        vehiclestate_elm.classList.remove('text-bg-primary');
+        vehiclestate_elm.classList.remove('text-bg-success');
+        vehiclestate_elm.classList.remove('text-bg-warning');
+        vehiclestate_elm.classList.add('text-bg-danger');
+      }
     });
 
 
@@ -294,16 +318,6 @@
         fault_index = (fault_index + 1) % faults.length;
       }
     }, FAULT_UPDATE_INTERVAL);
-
-
-    // Poll at 1 Hz
-    // setInterval(function() {
-    //   fetch('/data')
-    //     .then(response => response.json())
-    //     .then(data => {
-    //       console.log(data);
-    //     });
-    // }, 1000);
   </script>
 </body>
 

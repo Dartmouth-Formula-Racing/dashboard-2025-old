@@ -213,6 +213,8 @@ if __name__ == "__main__":
                         state["vehicle_state"] = "Buzzer"
                     elif vehicle_state == 8:
                         state["vehicle_state"] = "Ready to Drive"
+                    elif vehicle_state == 9:
+                        state["vehicle_state"] = "Charging"
                 elif msg.arbitration_id == config.CAN_BASE_ID + 2: # Driving data
                     state["throttle_position"] = ((msg.data[0] << 8) | msg.data[1])
                     rpm = (msg.data[2] << 8) | msg.data[3]
