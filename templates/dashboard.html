@@ -11,14 +11,16 @@
 <body clas="position-relative">
   <div class="container-fluid d-flex flex-column vh-100 m-0 p-0 text-bg-black bg-black">
     <!-- Top row: Odometer, Current time, Drive state (Discharged, Precharging, Drive, Reverse, Neutral), Status of IMD, BMS, DC-DC -->
-    <div class="row g-0 text-center">
-      <div id="faults" class="fs-5 col text-bg-success border-end border-black">No Faults</div>
-      <div id="bot" class="fs-5 col-1 text-bg-success border-start border-end border-black">BOT</div>
-      <div id="brb" class="fs-5 col-1 text-bg-success border-start border-end border-black">BRB</div>
-      <div id="imd" class="fs-5 col-1 text-bg-success border-start border-end border-black">IMD</div>
-      <div id="bms" class="fs-5 col-1 text-bg-success border-start border-end border-black">BMS</div>
-      <div id="dcdc" class="fs-5 col-1 text-bg-success border-start border-end border-black">DC-DC</div>
-      <div id="drivestate" class="fs-5 col-3 text-bg-success border-start border-black">Drive</div>
+    <div class="mt-1">
+      <div class="row g-0 text-center">
+        <div id="faults" class="fs-5 col text-bg-success border-end border-black">No Faults</div>
+        <div id="bot" class="fs-5 col-1 text-bg-success border-start border-end border-black">BOT</div>
+        <div id="brb" class="fs-5 col-1 text-bg-success border-start border-end border-black">BRB</div>
+        <div id="imd" class="fs-5 col-1 text-bg-success border-start border-end border-black">IMD</div>
+        <div id="bms" class="fs-5 col-1 text-bg-success border-start border-end border-black">BMS</div>
+        <div id="dcdc" class="fs-5 col-1 text-bg-success border-start border-end border-black">DC-DC</div>
+        <div id="drivestate" class="fs-5 col-3 text-bg-success border-start border-black">Drive</div>
+      </div>
     </div>
 
     <!-- Main section -->
@@ -98,10 +100,12 @@
     </div>
 
     <!-- Bottom row: Same as top for now -->
-    <div class="row g-0 text-center">
-      <div id="tractioncontrol" class="fs-5 col-4 text-bg-warning border-end border-black">Traction Control Off</div>
-      <div id="mileage" class="fs-5 col-4 text-bg-dark border-start border-end border-black">0.0 Miles</div>
-      <div id="vehiclestate" class="fs-5 col-4 text-bg-dark border-start border-black">Loading...</div>
+    <div class="mb-1">
+      <div class="row g-0 text-center">
+        <div id="tractioncontrol" class="fs-5 col-4 text-bg-warning border-end border-black">Traction Control Off</div>
+        <div id="mileage" class="fs-5 col-4 text-bg-dark border-start border-end border-black">0.0 Miles</div>
+        <div id="vehiclestate" class="fs-5 col-4 text-bg-dark border-start border-black">Loading...</div>
+      </div>
     </div>
   </div>
 
