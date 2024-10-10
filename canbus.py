@@ -81,6 +81,6 @@ def run(_rx_queue, _tx_queue, _state):
             rx_queue.put(received)
 
         # Check for data to send
-        if not tx_queue.empty():
+        while not tx_queue.empty():
             msg = tx_queue.get()
             bus.send(msg)

@@ -119,7 +119,8 @@ if __name__ == "__main__":
                 # Build CAN message
                 msg = canbus.build_button_message(drive_button, neutral_button, reverse_button)
                 # Add status message to the TX queue
-                tx_queue.put(msg)
+                if (tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE):
+                    tx_queue.put(msg)
                 last_button_send = time()
 
         if config.IN_CAR:
