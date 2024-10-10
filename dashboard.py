@@ -185,15 +185,14 @@ if __name__ == "__main__":
                     state["brb"] = msg.data[5]
                     state["dcdc"] = msg.data[6]
 
-                    state["drive_state"] = drive_state
-                    state["vehicle_state"] = vehicle_state
+                    state["vehicle_state"] = str(vehicle_state)
 
-                    # if drive_state == 0:
-                    #     state["drive_state"] = "NEUTRAL"
-                    # elif drive_state == 1:
-                    #     state["drive_state"] = "DRIVE"
-                    # elif drive_state == 2:
-                    #     state["drive_state"] = "REVERSE"
+                    if drive_state == 0:
+                        state["drive_state"] = "NEUTRAL"
+                    elif drive_state == 1:
+                        state["drive_state"] = "DRIVE"
+                    elif drive_state == 2:
+                        state["drive_state"] = "REVERSE"
 
                     # if vehicle_state == 0:
                     #     state["vehicle_state"] = "Initial"
