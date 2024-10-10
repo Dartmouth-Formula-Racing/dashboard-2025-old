@@ -18,7 +18,7 @@
         <div id="brb" class="fs-5 col-1 text-bg-success border-start border-end border-black">BRB</div>
         <div id="imd" class="fs-5 col-1 text-bg-success border-start border-end border-black">IMD</div>
         <div id="bms" class="fs-5 col-1 text-bg-success border-start border-end border-black">BMS</div>
-        <div id="cvc" class="fs-5 col-1 text-bg-success border-start border-end border-black">CVC 0ms</div>
+        <div id="cvc" class="fs-5 col-1 text-bg-success border-start border-end border-black">0ms</div>
         <div id="drivestate" class="fs-5 col-3 text-bg-success border-start border-black">Drive</div>
       </div>
     </div>
@@ -216,13 +216,13 @@
       }
 
       if (data.cvc_overflow) {
-        cvc_elm.classList.remove('text-bg-danger');
-        cvc_elm.classList.add('text-bg-success');
-      } else {
         cvc_elm.classList.remove('text-bg-success');
         cvc_elm.classList.add('text-bg-danger');
+      } else {
+        cvc_elm.classList.remove('text-bg-danger');
+        cvc_elm.classList.add('text-bg-success');
       }
-      cvc_elm.innerHTML = 'CVC ' + data.cvc_time + 'ms';
+      cvc_elm.innerHTML = data.cvc_time + 'ms';
 
       // Drive states
       // Drive/Reverse: Green
