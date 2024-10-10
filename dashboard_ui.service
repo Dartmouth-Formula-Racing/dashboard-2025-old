@@ -1,6 +1,6 @@
 [Unit]
 Description=DFR Dashboard Browser Service
-After=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
 Type=idle
