@@ -18,7 +18,7 @@
         <div id="brb" class="fs-5 col-1 text-bg-success border-start border-end border-black">BRB</div>
         <div id="imd" class="fs-5 col-1 text-bg-success border-start border-end border-black">IMD</div>
         <div id="bms" class="fs-5 col-1 text-bg-success border-start border-end border-black">BMS</div>
-        <div id="dcdc" class="fs-5 col-1 text-bg-success border-start border-end border-black">DC-DC</div>
+        <div id="cvc" class="fs-5 col-1 text-bg-success border-start border-end border-black">CVC 0ms</div>
         <div id="drivestate" class="fs-5 col-3 text-bg-success border-start border-black">Drive</div>
       </div>
     </div>
@@ -126,7 +126,7 @@
     var brb_elm = document.getElementById('brb');
     var imd_elm = document.getElementById('imd');
     var bms_elm = document.getElementById('bms');
-    var dcdc_elm = document.getElementById('dcdc');
+    var cvc_elm = document.getElementById('cvc');
     var drivestate_elm = document.getElementById('drivestate');
 
     var acctemp_elm = document.getElementById('acctemp');
@@ -215,13 +215,14 @@
         bms_elm.classList.add('text-bg-danger');
       }
 
-      if (data.dcdc) {
-        dcdc_elm.classList.remove('text-bg-danger');
-        dcdc_elm.classList.add('text-bg-success');
+      if (data.cvc_overflow) {
+        cvc_elm.classList.remove('text-bg-danger');
+        cvc_elm.classList.add('text-bg-success');
       } else {
-        dcdc_elm.classList.remove('text-bg-success');
-        dcdc_elm.classList.add('text-bg-danger');
+        cvc_elm.classList.remove('text-bg-success');
+        cvc_elm.classList.add('text-bg-danger');
       }
+      cvc_elm.innerHTML = 'CVC ' + data.cvc_time + 'ms';
 
       // Drive states
       // Drive/Reverse: Green

@@ -72,6 +72,8 @@ if __name__ == "__main__":
     state["mileage"] = 0.0
     state["temperaturesok"] = False
     state["canconnected"] = False
+    state["cvc_overflow"] = False
+    state["cvc_time"] = 0
 
     web_process = multiprocessing.Process(target=web.run, args=(state,), daemon=True)
     can_process = multiprocessing.Process(
@@ -183,7 +185,8 @@ if __name__ == "__main__":
                     vehicle_state = msg.data[3]
                     state["bot"] = msg.data[4]
                     state["brb"] = msg.data[5]
-                    state["dcdc"] = msg.data[6]
+                    state["cvc_overflow"] = msg.data[6]
+                    state["cvc_time"] = msg.data[7]
 
                     if drive_state == 0:
                         state["drive_state"] = "NEUTRAL"
