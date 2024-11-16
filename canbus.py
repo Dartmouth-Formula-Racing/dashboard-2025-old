@@ -51,9 +51,6 @@ def run(_rx_queue, _tx_queue, _state):
     # Set nRST high and STBY low
     GPIO.output(config.CAN_NRST_GPIO, GPIO.HIGH)
     GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
-    # Start CAN interface
-    system("sudo ip link set can0 up type can bitrate 500000 triple-sampling on restart-ms 100")
-    system("sudo ifconfig can0 txqueuelen 1000")
 
     # Main loop
     while True:

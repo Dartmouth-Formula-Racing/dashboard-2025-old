@@ -1,6 +1,5 @@
 import config
-from time import time, sleep
-import os
+from time import time
 
 if config.IN_CAR:
     import RPi.GPIO as GPIO
@@ -98,11 +97,8 @@ if __name__ == "__main__":
     neutral_update_time = 0
     reverse_update_time = 0
 
-    sleep(1) # Wait a second for web process to start
-    os.system("chromium-browser localhost:5000 --start-maximized --start-fullscreen")
-
     while True:
-        # Send button states every BUTTON_UPDATE_INTERVAL ms
+        # Send button states every BUTTON_SEND_INTERVAL ms
         if config.IN_CAR:
             # Check button states
             drive_button = False
@@ -217,7 +213,7 @@ if __name__ == "__main__":
                     elif vehicle_state == 9:
                         state["vehicle_state"] = "Charging"
                 elif msg.arbitration_id == config.CAN_BASE_ID + 2: # Driving data
-                    state["throttle_position"] = ((msg.data[0] << 8) | msg.data[1])
+                    state["throttle_position"] = (((msg.data[0] << 8) | msg.data[1])) / 10.0
                     rpm = (msg.data[2] << 8) | msg.data[3]
                     state["rpm"] = rpm
                     speed = (rpm * 60 * config.WHEEL_DIAMETER * 3.1415926535)/(12 * 5280 * config.TRANSMISSION_RATIO)
@@ -232,8 +228,3 @@ if __name__ == "__main__":
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 8: # BMS cell temperatures
                     # state["acctemp"] = (msg.data[1] - 100) * (9/5) + 32 # Convert to F
                     state["acctemp"] = msg.data[1] - 100 # in C
-
-    # Wait for processes to finish
-    web_process.join()
-    if config.IN_CAR:
-        can_process.join()

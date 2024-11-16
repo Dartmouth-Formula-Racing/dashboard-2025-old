@@ -9,4 +9,4 @@ User=root
 ExecStart=/bin/bash -c 'cd /home/pi/dashboard_2025/ && python dashboard.py'
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=basic.target
