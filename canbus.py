@@ -48,32 +48,42 @@ def run(_rx_queue, _tx_queue, _state):
     tx_queue = _tx_queue
     state = _state
 
-    # Set nRST high and STBY low
+    # Put chip in reset and standby mode
+    GPIO.output(config.CAN_NRST_GPIO, GPIO.LOW)
+    GPIO.output(config.CAN_STBY_GPIO, GPIO.HIGH)
+    time.sleep(0.1) # Wait for chip to reset
+
+    # Pull chip out of reset
     GPIO.output(config.CAN_NRST_GPIO, GPIO.HIGH)
-    GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
+    time.sleep(0.1)
     # Start CAN interface
     system("sudo ip link set can0 up type can bitrate 500000 restart-ms 20")
-    system("sudo ifconfig can0 txqueuelen 1000")
+    time.sleep(0.1)
+    system("sudo ifconfig can0 txqueuelen 65536")
+    # Pull chip out of standby mode
+    GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
 
     # Main loop
     while True:
         # Initialize socketcan interface
-        while bus is None:
-            try:
-                bus = can.interface.Bus(bustype='socketcan', channel='can0')
-                state['canconnected'] = True
-            except:  # noqa: E722
-                bus = None
-                state['canconnected'] = False
-                print("CAN initialization failed, retrying...")
-                time.sleep(0.5)
+        bus = can.interface.Bus(bustype='socketcan', channel='can0')
+        state['canconnected'] = True
+        # while bus is None:
+        #     try:
+        #         bus = can.interface.Bus(bustype='socketcan', channel='can0')
+        #         state['canconnected'] = True
+        #     except:  # noqa: E722
+        #         bus = None
+        #         state['canconnected'] = False
+        #         print("CAN initialization failed, retrying...")
+        #         time.sleep(0.5)
 
-        # Check if bus is in error state
-        if bus.state == can.BusState.ERROR:
-            print("CAN bus is in error state")
-            bus = None
-            state['canconnected'] = False
-            continue
+        # # Check if bus is in error state
+        # if bus.state == can.BusState.ERROR:
+        #     print("CAN bus is in error state")
+        #     bus = None
+        #     state['canconnected'] = False
+        #     continue
 
         # Check for received data
         received = bus.recv(timeout=config.CAN_RECV_TIMEOUT)
