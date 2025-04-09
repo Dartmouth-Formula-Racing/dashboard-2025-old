@@ -221,10 +221,13 @@ if __name__ == "__main__":
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 1: # BMS pack voltage
                     state["accumulator_voltage"] = ((msg.data[5] << 24) | (msg.data[6] << 16) | (msg.data[3] << 8) | msg.data[4]) / 100
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 5: # BMS state of charge
-                    state["battery_percentage"] = ((msg.data[5] << 8) | msg.data[6]) / 100
+                    # state["battery_percentage"] = msg.data[6] / 100
                     current_bytes = (msg.data[0] << 8) | msg.data[1]
                     current_value = current_bytes - 65535 if current_bytes > 32767 else current_bytes # Convert to signed int
                     state["accumulator_current"] = current_value / 10
+                elif msg.arbitration_id == config.CAN_BMS_BASE + 10: # BMS state of charge and health
+                    state_of_charge_bytes = (msg.data[2] << 8) | msg.data[3]
+                    state["battery_percentage"] = state_of_charge_bytes / 100
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 8: # BMS cell temperatures
                     # state["acctemp"] = (msg.data[1] - 100) * (9/5) + 32 # Convert to F
                     state["acctemp"] = msg.data[1] - 100 # in C
