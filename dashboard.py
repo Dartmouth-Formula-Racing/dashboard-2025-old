@@ -225,7 +225,7 @@ if __name__ == "__main__":
                     current_bytes = (msg.data[0] << 8) | msg.data[1]
                     current_value = current_bytes - 65535 if current_bytes > 32767 else current_bytes # Convert to signed int
                     state["accumulator_current"] = current_value / 10
-                elif msg.arbitration_id == config.CAN_BMS_BASE + 10: # BMS state of charge and health
+                elif msg.arbitration_id == config.CAN_BMS_BASE + 16: # BMS state of charge and health
                     state_of_charge_bytes = (msg.data[2] << 8) | msg.data[3]
                     state["battery_percentage"] = state_of_charge_bytes / 100
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 8: # BMS cell temperatures
