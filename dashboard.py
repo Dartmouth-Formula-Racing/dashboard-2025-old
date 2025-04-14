@@ -218,6 +218,7 @@ if __name__ == "__main__":
                     state["rpm"] = rpm
                     speed = (rpm * 60 * config.WHEEL_DIAMETER * 3.1415926535)/(12 * 5280 * config.TRANSMISSION_RATIO)
                     state["speed"] = speed
+                    state["mileage"] = ((msg.data[6] << 8) | msg.data[7]) / 1000.0
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 1: # BMS pack voltage
                     state["accumulator_voltage"] = ((msg.data[5] << 24) | (msg.data[6] << 16) | (msg.data[3] << 8) | msg.data[4]) / 100
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 5: # BMS state of charge

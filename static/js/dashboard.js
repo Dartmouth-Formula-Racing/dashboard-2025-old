@@ -175,7 +175,7 @@ socket.on('data', function (data) {
         tractioncontrol_elm.innerHTML = 'Traction Control Off';
     }
 
-    mileage_elm.innerHTML = data.mileage.toFixed(1) + ' Miles';
+    mileage_elm.innerHTML = data.mileage.toFixed(1) + '  KM';
 
     vehiclestate_elm.innerHTML = data.vehicle_state;
     // Check if vehicle state contains precharge
