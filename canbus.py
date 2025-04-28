@@ -48,20 +48,20 @@ def run(_rx_queue, _tx_queue, _state):
     tx_queue = _tx_queue
     state = _state
 
-    # Put chip in reset and standby mode
-    GPIO.output(config.CAN_NRST_GPIO, GPIO.LOW)
-    GPIO.output(config.CAN_STBY_GPIO, GPIO.HIGH)
-    time.sleep(0.1) # Wait for chip to reset
+    # # Put chip in reset and standby mode
+    # GPIO.output(config.CAN_NRST_GPIO, GPIO.LOW)
+    # GPIO.output(config.CAN_STBY_GPIO, GPIO.HIGH)
+    # time.sleep(0.1) # Wait for chip to reset
 
     # Pull chip out of reset
-    GPIO.output(config.CAN_NRST_GPIO, GPIO.HIGH)
-    time.sleep(0.1)
-    # Start CAN interface
-    system("sudo ip link set can0 up type can bitrate 500000 restart-ms 20")
-    time.sleep(0.1)
-    system("sudo ifconfig can0 txqueuelen 65536")
-    # Pull chip out of standby mode
-    GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
+    # GPIO.output(config.CAN_NRST_GPIO, GPIO.HIGH)
+    # time.sleep(0.1)
+    # # Start CAN interface
+    # system("sudo ip link set can0 up type can bitrate 500000 restart-ms 20")
+    # time.sleep(0.1)
+    # system("sudo ifconfig can0 txqueuelen 65536")
+    # # Pull chip out of standby mode
+    # GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
 
     # Main loop
     while True:
