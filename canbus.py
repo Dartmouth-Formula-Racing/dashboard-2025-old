@@ -26,6 +26,7 @@ state = None
 # CAN bus instance
 bus = None
 
+
 def build_button_message(drive_pressed, neutral_pressed, reverse_pressed):
     state = 0
     if reverse_pressed:
@@ -37,6 +38,15 @@ def build_button_message(drive_pressed, neutral_pressed, reverse_pressed):
     data = [state]
     dlc = len(data)
     return can.Message(arbitration_id=config.CAN_BASE_ID, data=data, dlc=dlc, is_extended_id=config.CAN_EXTENDED_ID)
+
+
+def build_potentiometer_message(pot_value):
+    """Build CAN message for potentiometer value (0-1000)"""
+    # Send as 16-bit value (high byte, low byte)
+    data = [(pot_value >> 8) & 0xFF, pot_value & 0xFF]
+    dlc = len(data)
+    return can.Message(arbitration_id=config.CAN_BASE_ID + 3, data=data, dlc=dlc, is_extended_id=config.CAN_EXTENDED_ID)
+
 
 def run(_rx_queue, _tx_queue, _state):
     global rx_queue
