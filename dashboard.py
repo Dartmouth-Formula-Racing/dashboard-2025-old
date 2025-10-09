@@ -13,6 +13,8 @@ import web
 BUTTON_DEBOUNCE_TIME = 50  # ms
 BUTTON_SEND_INTERVAL = 50  # ms
 
+POT_SEND_INTERVAL = 100  # ms
+
 # ADS1015 Register addresses
 ADS1015_REG_POINTER_CONVERT = 0x00
 ADS1015_REG_POINTER_CONFIG = 0x01
@@ -63,10 +65,10 @@ def read_adc(i2c_bus):
 
         # Scale to 0-1000 (assuming 3.3V full scale maps to 1000)
         # 3.3V at 4.096V range = 3.3/4.096 * 2048 = 1650 counts
-        value = int((raw_value / 1650.0) * 1000.0)
+        value = int((raw_value / 1650.0) * 255.0)
 
         # Clamp to 0-1000
-        value = max(0, min(1000, value))
+        value = max(0, min(255, value))
 
         return value
     except Exception as e:
@@ -75,6 +77,7 @@ def read_adc(i2c_bus):
 
 
 if __name__ == "__main__":
+    i2c_bus = None
     if config.IN_CAR:
         # Set up GPIO
         GPIO.setmode(GPIO.BCM)
@@ -156,6 +159,7 @@ if __name__ == "__main__":
         can_process.start()
 
     last_button_send = 0
+    last_pot_send = 0
     last_drive_button_state = False
     last_neutral_button_state = False
     last_reverse_button_state = False
@@ -186,13 +190,15 @@ if __name__ == "__main__":
                     tx_queue.put(msg)
                 last_button_send = time()
 
-            # Read potentiometer from ADC
-            pot_value = read_adc(i2c_bus)
+            if i2c_bus and ((time() - last_pot_send) * 1000 > POT_SEND_INTERVAL):
+                # Read potentiometer from ADC
+                pot_value = read_adc(i2c_bus)
 
-            # Send potentiometer value over CAN
-            pot_msg = canbus.build_potentiometer_message(pot_value)
-            if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
-                tx_queue.put(pot_msg)
+                # Send potentiometer value over CAN
+                pot_msg = canbus.build_potentiometer_message(pot_value)
+                if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
+                    tx_queue.put(pot_msg)
+                last_pot_send = time()
 
         if config.IN_CAR:
             if state["imd"]:
