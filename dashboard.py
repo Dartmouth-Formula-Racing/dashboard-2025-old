@@ -63,10 +63,10 @@ def read_adc(i2c_bus):
 
         # Scale to 0-1000 (assuming 3.3V full scale maps to 1000)
         # 3.3V at 4.096V range = 3.3/4.096 * 2048 = 1650 counts
-        value = int((raw_value / 1650.0) * 1000.0)
+        value = int((raw_value / 1650.0) * 255.0)
 
         # Clamp to 0-1000
-        value = max(0, min(1000, value))
+        value = max(0, min(255, value))
 
         return value
     except Exception as e:
@@ -162,6 +162,8 @@ if __name__ == "__main__":
     drive_update_time = 0
     neutral_update_time = 0
     reverse_update_time = 0
+    pot_update_time = 0
+    last_pot_value = 0
 
     while True:
         # Send button states every BUTTON_SEND_INTERVAL ms
@@ -180,19 +182,23 @@ if __name__ == "__main__":
             if (drive_button or neutral_button or reverse_button) and (
                     (time() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):
                 # Build CAN message
-                msg = canbus.build_button_message(drive_button, neutral_button, reverse_button)
+                msg = canbus.build_button_message(drive_button, neutral_button, reverse_button, last_pot_value)
                 # Add status message to the TX queue
                 if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
                     tx_queue.put(msg)
                 last_button_send = time()
 
+            if (time() - pot_update_time) * 1000 > config.POT_TRANSMIT_INTERVAL:
             # Read potentiometer from ADC
-            pot_value = read_adc(i2c_bus)
+                pot_value = read_adc(i2c_bus)
+                last_pot_value = pot_value
+                if last_pot_value != pot_value:
+                    # Send potentiometer value over CAN
+                    pot_msg = canbus.build_dashboard_message(drive_button, neutral_button, reverse_button, pot_value)
+                    if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
+                        tx_queue.put(pot_msg)
 
-            # Send potentiometer value over CAN
-            pot_msg = canbus.build_potentiometer_message(pot_value)
-            if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
-                tx_queue.put(pot_msg)
+                pot_update_time = time()
 
         if config.IN_CAR:
             if state["imd"]:
