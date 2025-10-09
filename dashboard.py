@@ -182,7 +182,7 @@ if __name__ == "__main__":
             if (drive_button or neutral_button or reverse_button) and (
                     (time() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):
                 # Build CAN message
-                msg = canbus.build_dashboard_message(drive_button, neutral_button, reverse_button, last_pot_value)
+                msg = canbus.build_button_message(drive_button, neutral_button, reverse_button, last_pot_value)
                 # Add status message to the TX queue
                 if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
                     tx_queue.put(msg)
