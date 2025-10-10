@@ -74,34 +74,35 @@ def run(_rx_queue, _tx_queue, _state):
     # GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
 
     # Main loop
-    bus = can.interface.Bus(bustype='socketcan', channel='can0')
-    state['canconnected'] = True
 
-    while True:
-        # Initialize socketcan interface
-        # while bus is None:
-        #     try:
-        #         bus = can.interface.Bus(bustype='socketcan', channel='can0')
-        #         state['canconnected'] = True
-        #     except:  # noqa: E722
-        #         bus = None
-        #         state['canconnected'] = False
-        #         print("CAN initialization failed, retrying...")
-        #         time.sleep(0.5)
+    with can.interface.Bus(bustype='socketcan', channel='can0') as bus:
+        state['canconnected'] = True    
 
-        # # Check if bus is in error state
-        # if bus.state == can.BusState.ERROR:
-        #     print("CAN bus is in error state")
-        #     bus = None
-        #     state['canconnected'] = False
-        #     continue
+        while True:
+            # Initialize socketcan interface
+            # while bus is None:
+            #     try:
+            #         bus = can.interface.Bus(bustype='socketcan', channel='can0')
+            #         state['canconnected'] = True
+            #     except:  # noqa: E722
+            #         bus = None
+            #         state['canconnected'] = False
+            #         print("CAN initialization failed, retrying...")
+            #         time.sleep(0.5)
 
-        # Check for received data
-        received = bus.recv(timeout=config.CAN_RECV_TIMEOUT)
-        if (received is not None):
-            rx_queue.put(received)
+            # # Check if bus is in error state
+            # if bus.state == can.BusState.ERROR:
+            #     print("CAN bus is in error state")
+            #     bus = None
+            #     state['canconnected'] = False
+            #     continue
 
-        # Check for data to send
-        while not tx_queue.empty():
-            msg = tx_queue.get()
-            bus.send(msg)
+            # Check for received data
+            received = bus.recv(timeout=config.CAN_RECV_TIMEOUT)
+            if (received is not None):
+                rx_queue.put(received)
+
+            # Check for data to send
+            while not tx_queue.empty():
+                msg = tx_queue.get()
+                bus.send(msg)
