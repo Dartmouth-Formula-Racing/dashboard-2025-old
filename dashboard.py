@@ -108,7 +108,7 @@ if __name__ == "__main__":
     reverse_button_state = False
 
     rx_queue = multiprocessing.Queue()
-    tx_queue = multiprocessing.Queue()
+    tx_queue = multiprocessing.Queue(maxsize=1024)
 
     manager = multiprocessing.Manager()
 
