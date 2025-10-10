@@ -74,10 +74,11 @@ def run(_rx_queue, _tx_queue, _state):
     # GPIO.output(config.CAN_STBY_GPIO, GPIO.LOW)
 
     # Main loop
+    bus = can.interface.Bus(bustype='socketcan', channel='can0')
+    state['canconnected'] = True
+
     while True:
         # Initialize socketcan interface
-        bus = can.interface.Bus(bustype='socketcan', channel='can0')
-        state['canconnected'] = True
         # while bus is None:
         #     try:
         #         bus = can.interface.Bus(bustype='socketcan', channel='can0')

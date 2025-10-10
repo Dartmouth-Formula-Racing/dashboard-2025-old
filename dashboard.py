@@ -1,5 +1,6 @@
 import config
-from time import time
+import time
+import queue
 
 if config.IN_CAR:
     import RPi.GPIO as GPIO
@@ -63,11 +64,11 @@ def read_adc(i2c_bus):
         if raw_value > 2047:
             raw_value = 0
 
-        # Scale to 0-1000 (assuming 3.3V full scale maps to 1000)
+        # Scale to 0-255 (assuming 3.3V full scale maps to 255)
         # 3.3V at 4.096V range = 3.3/4.096 * 2048 = 1650 counts
         value = int((raw_value / 1650.0) * 255.0)
 
-        # Clamp to 0-1000
+        # Clamp to 0-255
         value = max(0, min(255, value))
 
         return value
@@ -182,23 +183,32 @@ if __name__ == "__main__":
                 reverse_button = True
 
             if (drive_button or neutral_button or reverse_button) and (
-                    (time() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):
+                    (time.monotonic() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):
                 # Build CAN message
                 msg = canbus.build_button_message(drive_button, neutral_button, reverse_button)
-                # Add status message to the TX queue
-                if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
-                    tx_queue.put(msg)
-                last_button_send = time()
+                # Try to add button message to the TX queue without blocking; only update the
+                # send timestamp if the message was queued successfully.
+                try:
+                    tx_queue.put_nowait(msg)
+                except queue.Full:
+                    # queue is full; drop message
+                    pass
+                else:
+                    last_button_send = time.monotonic()
 
-            if i2c_bus and ((time() - last_pot_send) * 1000 > POT_SEND_INTERVAL):
+            if i2c_bus and ((time.monotonic() - last_pot_send) * 1000 > POT_SEND_INTERVAL):
                 # Read potentiometer from ADC
                 pot_value = read_adc(i2c_bus)
 
                 # Send potentiometer value over CAN
                 pot_msg = canbus.build_potentiometer_message(pot_value)
-                if tx_queue.qsize() < config.CAN_TX_QUEUE_SIZE:
-                    tx_queue.put(pot_msg)
-                last_pot_send = time()
+                try:
+                    tx_queue.put_nowait(pot_msg)
+                except queue.Full:
+                    # drop if full
+                    pass
+                else:
+                    last_pot_send = time.monotonic()
 
         if config.IN_CAR:
             if state["imd"]:
@@ -313,3 +323,4 @@ if __name__ == "__main__":
                 elif msg.arbitration_id == config.CAN_BMS_BASE + 8:  # BMS cell temperatures
                     # state["acctemp"] = (msg.data[1] - 100) * (9/5) + 32 # Convert to F
                     state["acctemp"] = msg.data[1] - 100  # in C
+    time.sleep(0.005)
