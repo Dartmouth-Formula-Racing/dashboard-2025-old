@@ -7,6 +7,7 @@ const FAULT_UPDATE_INTERVAL = 1500; // ms
 var faults = ['Websocket Disconnected'];
 var fault_index = 0;
 
+var accelmode_elm = document.getElementById('accelmode');
 
 var faults_elm = document.getElementById('faults');
 var bot_elm = document.getElementById('bot');
@@ -203,6 +204,13 @@ socket.on('data', function (data) {
         vehiclestate_elm.classList.remove('text-bg-success');
         vehiclestate_elm.classList.remove('text-bg-warning');
         vehiclestate_elm.classList.add('text-bg-danger');
+    }
+
+    // Acceleration Mode indicator
+    if (data.accel_mode) {
+        accelmode_elm.style.display = 'block';
+    } else {
+        accelmode_elm.style.display = 'none';
     }
 });
 

@@ -125,6 +125,7 @@ if __name__ == "__main__":
     state["bms"] = False
     state["dcdc"] = False
     state["drive_state"] = "NEUTRAL"
+    state["accel_mode"] = False
     state["vehicle_state"] = "Loading..."
     state["acctemp"] = 0.0
     state["leftinvtemp"] = 0.0
@@ -197,7 +198,17 @@ if __name__ == "__main__":
 
             if (accel_button_top or accel_button_bottom) and (
                     (time.monotonic() - last_accel_mode_send) * 1000 > BUTTON_SEND_INTERVAL):
-                None
+                # Build CAN message
+                msg = canbus.build_accel_mode_message(accel_button_top, accel_button_bottom, drive_button)
+                # Try to add button message to the TX queue without blocking; only update the
+                # send timestamp if the message was queued successfully.
+                try:
+                    tx_queue.put_nowait(msg)
+                except queue.Full:
+                    # queue is full; drop message
+                    pass
+                else:
+                    last_button_send = time.monotonic()
 
             if (drive_button or neutral_button or reverse_button) and (
                     (time.monotonic() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):
@@ -291,6 +302,7 @@ if __name__ == "__main__":
                     state["brb"] = msg.data[5]
                     state["cvc_overflow"] = msg.data[6]
                     state["cvc_time"] = msg.data[7]
+                    state["accel_mode"] = msg.data[8]
 
                     if drive_state == 0:
                         state["drive_state"] = "NEUTRAL"
