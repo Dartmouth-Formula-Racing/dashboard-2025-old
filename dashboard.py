@@ -1,6 +1,7 @@
-import config
-import time
 import queue
+import time
+
+import config
 
 if config.IN_CAR:
     import RPi.GPIO as GPIO
@@ -92,6 +93,8 @@ if __name__ == "__main__":
         GPIO.setup(config.NEUTRAL_LED_GPIO, GPIO.OUT)
         GPIO.setup(config.REVERSE_BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(config.REVERSE_LED_GPIO, GPIO.OUT)
+        GPIO.setup(config.ACCEL_BUTTON_TOP_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(config.ACCEL_BUTTON_BOTTOM_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         GPIO.output(config.DRIVE_LED_GPIO, GPIO.HIGH)
         GPIO.output(config.NEUTRAL_LED_GPIO, GPIO.HIGH)
@@ -103,9 +106,9 @@ if __name__ == "__main__":
         i2c_bus = smbus2.SMBus(config.ADC_I2C_BUS)
         configure_adc(i2c_bus)
 
-    drive_button_state = False
-    neutral_button_state = False
-    reverse_button_state = False
+    # drive_button_state = False
+    # neutral_button_state = False
+    # reverse_button_state = False
 
     rx_queue = multiprocessing.Queue()
     tx_queue = multiprocessing.Queue(maxsize=1024)
@@ -161,12 +164,15 @@ if __name__ == "__main__":
 
     last_button_send = 0
     last_pot_send = 0
-    last_drive_button_state = False
-    last_neutral_button_state = False
-    last_reverse_button_state = False
-    drive_update_time = 0
-    neutral_update_time = 0
-    reverse_update_time = 0
+    last_accel_mode_send = 0
+
+    # last_drive_button_state = False
+    # last_neutral_button_state = False
+    # last_reverse_button_state = False
+
+    # drive_update_time = 0
+    # neutral_update_time = 0
+    # reverse_update_time = 0
 
     while True:
         # Send button states every BUTTON_SEND_INTERVAL ms
@@ -181,6 +187,17 @@ if __name__ == "__main__":
                 neutral_button = True
             if GPIO.input(config.REVERSE_BUTTON_GPIO) == 0:
                 reverse_button = True
+
+            accel_button_top = False
+            accel_button_bottom = False
+            if GPIO.input(config.ACCEL_BUTTON_TOP_GPIO) == 0:
+                accel_button_top = True
+            if GPIO.input(config.ACCEL_BUTTON_BOTTOM_GPIO) == 0:
+                accel_button_bottom = True
+
+            if (accel_button_top or accel_button_bottom) and (
+                    (time.monotonic() - last_accel_mode_send) * 1000 > BUTTON_SEND_INTERVAL):
+                None
 
             if (drive_button or neutral_button or reverse_button) and (
                     (time.monotonic() - last_button_send) * 1000 > BUTTON_SEND_INTERVAL):

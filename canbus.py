@@ -40,6 +40,17 @@ def build_button_message(drive_pressed, neutral_pressed, reverse_pressed):
     return can.Message(arbitration_id=config.CAN_BASE_ID, data=data, dlc=dlc, is_extended_id=config.CAN_EXTENDED_ID)
 
 
+def build_accel_mode_message(top_pressed, bottom_pressed, drive_pressed):
+    state = 0 # 0 = not acceleration mode; 1 = in accel mode
+    if top_pressed and drive_pressed:
+        state = 1
+    if bottom_pressed:
+        state = 0
+    data = [state]
+    dlc = len(data)
+    return can.Message(arbitration_id=config.CAN_BASE_ID + 5, data=data, dlc=dlc, is_extended_id=config.CAN_EXTENDED_ID)
+
+
 def build_potentiometer_message(pot_value):
     """Build CAN message for potentiometer value (0-1000)"""
     # Send as 16-bit value (high byte, low byte)
